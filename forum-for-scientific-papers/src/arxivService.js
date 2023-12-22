@@ -27,3 +27,8 @@ export const fetchPapers = async (searchQuery = 'all:electron', start = 0, maxRe
     return [];
   }
 };
+
+export const fetchPapersByTopic = async (topicId, start = 0, maxResults = 10) => {
+    const searchQuery = `cat:${topicId}`;
+    return await fetchPapers(searchQuery, start, maxResults);
+    }
