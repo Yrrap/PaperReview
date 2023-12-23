@@ -1,15 +1,24 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './Header';
-import PaperList from './PaperList';
 import Footer from './Footer';
+import Home from './Home';
+import TopicPage from './TopicPage';
+import './styles.css';
 
 function App() {
   return (
-    <div>
+    <Router>
       <Header />
-      <PaperList />
+      <main>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/topic/:topicId" element={<TopicPage />} />
+          {/* You can add more routes here */}
+        </Routes>
+      </main>
       <Footer />
-    </div>
+    </Router>
   );
 }
 
