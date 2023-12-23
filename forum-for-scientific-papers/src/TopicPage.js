@@ -1,25 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { fetchPapersByTopic } from './arxivService';
-import Paper from './Paper';
+import React, { useState } from 'react';
+// import { fetchPapersByTags } from './arxivService';
+import PaperList from './PaperList';
 
 function TopicPage() {
-  const [papers, setPapers] = useState([]);
-  const { topicId } = useParams(); // This will get the topicId from the URL
-
-  useEffect(() => {
-    const getPapers = async () => {
-      const data = await fetchPapersByTopic(topicId);
-      setPapers(data);
-    };
-    getPapers();
-  }, [topicId]);
-
+  const [papers/*, setPapers*/] = useState([]);
+  
+  // const handleSearch = async (tags) => {
+  //   const results = await fetchPapersByTags(tags);
+  //   setPapers(results);
+  // };
   return (
     <div>
-      {papers.map((paper, index) => (
-        <Paper key={index} paper={paper} />
-      ))}
+      {/* <SearchBar onSearch={handleSearch} /> */}
+      <PaperList papers={papers} />
     </div>
   );
 }

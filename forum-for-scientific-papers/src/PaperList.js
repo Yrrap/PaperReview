@@ -16,7 +16,7 @@ function PaperList() {
   return (
     <div>
       {papers.map((paper, index) => (
-        <Paper key={index} title={paper.title} abstract={paper.summary} link={paper.link} />
+        <Paper key={index} title={paper.title} authors={paper.authors} abstract={paper.summary} link={paper.link} />
       ))}
     </div>
   );
