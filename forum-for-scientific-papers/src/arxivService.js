@@ -1,27 +1,28 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://export.arxiv.org/api/query/';
+// const BASE_URL = 'https://export.arxiv.org/api/query';
 
 export const fetchPapers = async (searchQuery = 'all:electron', start = 0, maxResults = 15) => {
-  const query = `/?search_query=${searchQuery}&start${start}&max_results=${maxResults}&sortBy=submittedDate&sortOrder=descending`;
-  console.log('query: ');
-  console.log(query);
+  // Ensure that query parameters are correctly added to the URL
+  const query = `?search_query=${(searchQuery)}&start=${start}&max_results=${maxResults}&sortBy=submittedDate&sortOrder=descending`;
+  const BASE_URL = 'https://export.arxiv.org/api/query';
+  const newQuery = `${BASE_URL}${query}`;
   try {
-    const response = await axios.get(`${BASE_URL}${query}`);
-    console.log(response);
-    console.log(response.data);
+    const response = await axios.get(newQuery);
     const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(response.data, "application/xml");
-    console.log('xmlDoc: ');
-    console.log(xmlDoc);
-    const entries = xmlDoc.querySelectorAll('feed > entry');
+    const xmlDoc = parser.parseFromString(response.data, "text/xml"); // Use "text/xml" here
+    const entries = xmlDoc.getElementsByTagName('entry');
+    // console.log('xmlDoc: ');
+    // console.log(xmlDoc);
+    // console.log('entries: ');
+    // console.log(entries);
     let papers = [];
 
     console.log('entries: ');
     console.log(entries);
     for (let i = 0; i < entries.length; i++) {
-      console.log(i);
-      console.log(entries[i]);
+      // console.log(i);
+      // console.log(entries[i]);
       const title = entries[i].getElementsByTagName('title')[0].textContent;
       const summary = entries[i].getElementsByTagName('summary')[0].textContent;
       const authorElements = entries[i].getElementsByTagName('author');
