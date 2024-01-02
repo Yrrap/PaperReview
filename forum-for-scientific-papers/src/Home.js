@@ -13,9 +13,17 @@ function Home() {
   // };
   
   useEffect(() => {
+<<<<<<< Updated upstream
     // Fetch and set the recent papers when the component mounts
     const loadRecentPapers = async () => {
       const results = await fetchPapers();
+=======
+    // console.log('useEffect');
+    // Fetch and set the recent papers when the component mounts
+    const loadRecentPapers = async () => {
+      const results = await fetchPapers();
+      // console.log(results);
+>>>>>>> Stashed changes
       setPapers(results);
     };
     loadRecentPapers();
