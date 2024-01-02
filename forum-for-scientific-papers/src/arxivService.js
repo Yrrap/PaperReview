@@ -5,7 +5,7 @@ import axios from 'axios';
 export const fetchPapers = async (searchQuery = 'all:electron', start = 0, maxResults = 15) => {
   // Ensure that query parameters are correctly added to the URL
   const query = `?search_query=${(searchQuery)}&start=${start}&max_results=${maxResults}&sortBy=submittedDate&sortOrder=descending`;
-  const BASE_URL = 'https://export.arxiv.org/api/query';
+  const BASE_URL = 'https://export.arxiv.org/api/query/';
   const newQuery = `${BASE_URL}${query}`;
   try {
     const response = await axios.get(newQuery);
