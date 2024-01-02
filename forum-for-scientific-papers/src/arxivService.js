@@ -18,6 +18,8 @@ export const fetchPapers = async (searchQuery = 'all:electron', start = 0, maxRe
     // console.log(entries);
     let papers = [];
 
+    console.log('entries: ');
+    console.log(entries);
     for (let i = 0; i < entries.length; i++) {
       // console.log(i);
       // console.log(entries[i]);
