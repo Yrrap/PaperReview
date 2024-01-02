@@ -4,7 +4,6 @@ const papersRoutes = require('./routes/papers');
 const authorsRoutes = require('./routes/authors');
 const commentsRoutes = require('./routes/comments');
 const usersRoutes = require('./routes/users');
-const paperAuthorsRoutes = require('./routes/paperAuthors');
 const { sequelize } = require('./models');
 
 // Middleware to parse JSON bodies
@@ -13,7 +12,6 @@ app.use('/api/papers', papersRoutes);
 app.use('/api/authors', authorsRoutes);
 app.use('/api/comments', commentsRoutes);
 app.use('/api/users', usersRoutes);
-app.use('/api/paperAuthors', paperAuthorsRoutes);
 
 // Define a port number
 const PORT = process.env.PORT || 3001;

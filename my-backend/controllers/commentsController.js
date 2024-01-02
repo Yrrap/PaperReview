@@ -1,6 +1,6 @@
 const { Comment } = require('../models');
 
-const getComments = async (req, res) => {
+const getAllComments = async (req, res) => {
   try {
     const comments = await Comment.findAll();
     res.json(comments);
@@ -61,7 +61,7 @@ const deleteComment = async (req, res) => {
 };
 
 module.exports = {
-    getComments,
+    getAllComments,
     getCommentById,
     createComment,
     updateComment,

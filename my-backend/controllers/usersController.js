@@ -1,6 +1,6 @@
 const { User } = require('../models');
 
-const getUsers = async (req, res) => {
+const getAllUsers = async (req, res) => {
   try {
     const users = await User.findAll();
     res.json(users);
@@ -62,7 +62,7 @@ const deleteUser = async (req, res) => {
 };
 
 module.exports = {
-    getUsers,
+    getAllUsers,
     getUserById,
     createUser,
     updateUser,

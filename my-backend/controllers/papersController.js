@@ -1,6 +1,6 @@
 const { Paper } = require('../models');
 
-const getPapers = async (req, res) => {
+const getAllPapers = async (req, res) => {
   try {
     const papers = await Paper.findAll();
     res.json(papers);
@@ -62,7 +62,7 @@ const deletePaper = async (req, res) => {
 };
 
 module.exports = {
-    getPapers,
+    getAllPapers,
     getPaperById,
     createPaper,
     updatePaper,
