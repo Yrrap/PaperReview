@@ -1,0 +1,10 @@
+{
+    "development": {
+      "username": "postgres",
+      "password": "7619Rve8",
+      "database": "paper_review",
+      "host": "127.0.0.1",
+      "dialect": "postgres"
+    }
+  }
+  

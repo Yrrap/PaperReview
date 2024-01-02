@@ -13,9 +13,11 @@ function Home() {
   // };
   
   useEffect(() => {
+    console.log('useEffect');
     // Fetch and set the recent papers when the component mounts
     const loadRecentPapers = async () => {
       const results = await fetchPapers();
+      console.log(results);
       setPapers(results);
     };
     loadRecentPapers();
