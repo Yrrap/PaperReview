@@ -2,20 +2,20 @@ import axios from 'axios';
 
 // const BASE_URL = 'https://export.arxiv.org/api/query';
 
-export const fetchPapers = async (searchQuery = 'all:electron', start = 0, maxResults = 15) => {
+export const fetchPapers = async (searchQuery = 'cat:cs.NE', id_list = 'cs.NE', start = 0, maxResults = 15) => {
   // Ensure that query parameters are correctly added to the URL
   const query = `?search_query=${(searchQuery)}&start=${start}&max_results=${maxResults}&sortBy=submittedDate&sortOrder=descending`;
-  const BASE_URL = 'https://export.arxiv.org/api/query/';
+  const BASE_URL = `https://export.arxiv.org/api/query/`;
   const newQuery = `${BASE_URL}${query}`;
   try {
     const response = await axios.get(newQuery);
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(response.data, "text/xml"); // Use "text/xml" here
     const entries = xmlDoc.getElementsByTagName('entry');
-    // console.log('xmlDoc: ');
-    // console.log(xmlDoc);
-    // console.log('entries: ');
-    // console.log(entries);
+    console.log('xmlDoc: ');
+    console.log(xmlDoc);
+    console.log('entries: ');
+    console.log(entries);
     let papers = [];
 
     console.log('entries: ');
@@ -40,21 +40,3 @@ export const fetchPapers = async (searchQuery = 'all:electron', start = 0, maxRe
     return [];
   }
 };
-
-
-export const fetchPapersByTags = async (tags) => {
-  const query = tags.split(',').map(tag => `cat:${tag.trim()}`).join('+OR+');
-  try {
-    return await fetchPapers(query);
-  } catch (error) {
-    console.error("Error fetching papers by tags from arXiv:", error);
-    throw error;
-  }
-};
-
-
-
-// export const fetchPapersByTopic = async (topicId, start = 0, maxResults = 10) => {
-//     const searchQuery = `cat:${topicId}`;
-//     return await fetchPapers(searchQuery, start, maxResults);
-//     }
