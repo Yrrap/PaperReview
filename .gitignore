@@ -38,3 +38,4 @@ packages/react-devtools-shell/dist
 packages/react-devtools-timeline/dist
 Flask/api.py
 review_backend/review_backend/pw.py
+review_backend/review_backend/.env
