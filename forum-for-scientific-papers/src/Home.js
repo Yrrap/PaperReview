@@ -5,13 +5,7 @@ import { fetchPapers } from './arxivService';
 
 
 function Home() {
-  const [papers, setPapers] = useState([]);
-
-  // const handleSearch = async (tags) => {
-  //   const results = await fetchPapers(tags);
-  //   setPapers(results);
-  // };
-  
+  const [papers, setPapers] = useState([]);  
   useEffect(() => {
     // console.log('useEffect');
     // Fetch and set the recent papers when the component mounts
