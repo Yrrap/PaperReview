@@ -1,26 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import GraphComponent from './GraphComponent';  // Assuming you have a GraphComponent as described previously
+import React, { useState, useEffect } from 'react';
+import Graph from './Graph';
 
-function App() {
-    const [graphData, setGraphData] = useState({ nodes: [], edges: [] });
+const App = () => {
+    const [elements, setElements] = useState([]);
 
     useEffect(() => {
-        axios.get('http://localhost:5000/api/graph')
-            .then(response => {
-                setGraphData(response.data);
+        fetch('http://127.0.0.1:8000/api/graph_data/')
+            .then(response => response.json())
+            .then(data => {
+                setElements(data); // Adjust according to your data structure
             })
-            .catch(error => {
-                console.error('Error fetching graph data:', error);
-            });
+            .catch(error => console.error('Error fetching data:', error));
     }, []);
 
     return (
-        <div className="App">
-            <h1>Interactive Graph Visualisation</h1>
-            <GraphComponent elements={graphData} />
+        <div>
+            <h1>Network Graph</h1>
+            <Graph elements={elements} />
         </div>
     );
-}
+};
 
 export default App;
