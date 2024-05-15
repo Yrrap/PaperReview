@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'graphapi'
+    'graphapi',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -52,10 +53,18 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'review_backend.urls'
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',  # Adjust the port if necessary
+    'http://127.0.0.1:3000',  # If you access your site via IP
+]
+
 
 TEMPLATES = [
     {
