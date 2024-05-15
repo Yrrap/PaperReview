@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import Graph from './Graph';
 import Legend from './Legend';
 import ConcGraph from './ConcGraph';
+import CoseGraph from './CoseGraph';
+import ErrorBoundary from './ErrorBoundary';
+import Filtering from './Filtering';
+import GraphSearch from './GraphSearch';
 
 const App = () => {
     const [elements, setElements] = useState([]);
@@ -26,8 +30,15 @@ const App = () => {
     return (
         <div>
             <h1>Network Graph</h1>
-            <Graph elements={elements} />
-            <ConcGraph elements={elements} />
+            {/* <Graph elements={elements} />
+            <ErrorBoundary>
+                <ConcGraph elements={elements} />
+            </ErrorBoundary> */}
+            <ErrorBoundary>
+                <GraphSearch elements={elements} />
+                <CoseGraph elements={elements} />
+            </ErrorBoundary>
+            <Filtering data={elements} />
             <button onClick={refreshData}>Refresh Data</button>
             <Legend />
         </div>
