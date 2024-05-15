@@ -1,99 +1,143 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import cytoscape from 'cytoscape';
 import fcose from 'cytoscape-fcose';
 
 cytoscape.use(fcose);
 
+const throttle = (func, limit) => {
+  let inThrottle;
+  return (...args) => {
+    if (!inThrottle) {
+      func.apply(this, args);
+      inThrottle = true;
+      setTimeout(() => inThrottle = false, limit);
+    }
+  };
+};
+
 const CoseGraph = ({ elements }) => {
   const cyContainerRef = useRef(null);
-  const [cy, setCy] = useState(null);  // Keep the cytoscape instance in the state
+  const [cy, setCy] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Initialize or update Cytoscape instance with throttle
+  const updateCytoscape = useCallback(
+    throttle((combinedElements) => {
+      if (!cyContainerRef.current) {
+        console.error('Cytoscape container is not set');
+        return;
+      }
+
+      if (combinedElements.length > 0) {
+        if (!cy) {
+          console.log('CoseGraph useEffect - initializing new Cytoscape instance');
+          const newCy = cytoscape({
+            container: cyContainerRef.current,
+            elements: combinedElements,
+            layout: {
+              name: 'fcose',
+              idealEdgeLength: 100,
+              nodeRepulsion: 4500,
+              animate: false,
+            },
+            style: [
+              {
+                selector: 'node',
+                style: {
+                  'background-color': '#666',
+                  'label': 'data(label)',
+                  'text-valign': 'center',
+                  'color': '#fff',
+                  'width': '20px',
+                  'height': '20px',
+                  'font-size': '8px',
+                },
+              },
+              {
+                selector: 'edge',
+                style: {
+                  'width': 2,
+                  'line-color': ele => {
+                    switch (ele.data('label')) {
+                      case 'related field': return '#0ff';
+                      case 'similar results': return '#f00';
+                      case 'cites': return '#0f0';
+                      case 'similar methods': return '#00f';
+                      default: return '#888';
+                    }
+                  },
+                },
+              },
+            ],
+          });
+
+          newCy.on('mouseover', 'node', (event) => {
+            const nodeData = event.target.data();
+            // console.log('Node data on mouseover:', nodeData); // Log node data
+            // Adjust this line based on your actual node data structure
+            const tooltipContent = `Title: ${nodeData.label || 'undefined'}`;
+            showTooltip(event.renderedPosition, tooltipContent);
+          });
+
+          newCy.on('mouseout', 'node', hideTooltip);
+
+          setCy(newCy);
+        } else {
+          // Update existing instance with new elements
+          // console.log('CoseGraph useEffect - updating Cytoscape instance');
+          try {
+            cy.batch(() => {
+              cy.elements().remove();
+              cy.add(combinedElements);
+              cy.layout({ name: 'fcose', idealEdgeLength: 100, nodeRepulsion: 4500, animate: false }).run();
+            });
+          } catch (error) {
+            // console.error('Error running layout:', error);
+          }
+        }
+      }
+    }, 500), [cy, cyContainerRef]
+  );
+
   useEffect(() => {
-    if (!Array.isArray(elements.nodes) || !Array.isArray(elements.edges)) {
+    // console.log('CoseGraph useEffect - elements:', elements);
+
+    if (!elements || !Array.isArray(elements.nodes) || !Array.isArray(elements.edges)) {
       console.error('Invalid elements structure:', elements);
       return;
     }
-    
+
     const combinedElements = [...elements.nodes, ...elements.edges];
+    // console.log('CoseGraph useEffect - combinedElements:', combinedElements);
 
-    // Initialize the Cytoscape instance only once and update it via setCy
-    if (!cy) {
-      const newCy = new cytoscape({
-        container: cyContainerRef.current,
-        elements: combinedElements,
-        layout: {
-          name: 'fcose',
-          idealEdgeLength: 100,
-          nodeRepulsion: 4500,
-          animate: true,
-        },
-        style: [
-          {
-            selector: 'node',
-            style: {
-              'background-color': '#666',
-              'label': 'data(label)',
-              'text-valign': 'center',
-              'color': '#fff',
-              'width': '20px',
-              'height': '20px',
-              'font-size': '8px',
-            }
-          },
-          {
-            selector: 'edge',
-            style: {
-              'width': 2,
-              'line-color': ele => {
-                switch (ele.data('label')) {
-                  case 'related field': return '#66c2a5';
-                  case 'similar results': return '#fc8d62';
-                  case 'cites': return '#8da0cb';
-                  case 'similar methods': return '#e78ac3';
-                  default: return '#888';
-                }
-              },
-            }
-          }
-        ],
-      });
-
-      setCy(newCy);  // Store the Cytoscape instance in state
-
-      // Set up event handlers
-      newCy.on('mouseover', 'node', (event) => {
-        const nodeData = event.target.data();
-        const tooltipContent = `Title: ${nodeData.title}, Author: ${nodeData.author}`;
-        showTooltip(event.renderedPosition, tooltipContent);
-      });
-
-      newCy.on('mouseout', 'node', (event) => {
-        hideTooltip();
-      });
-    }
+    updateCytoscape(combinedElements);
 
     return () => {
       if (cy) {
+        // console.log('CoseGraph useEffect - cleaning up Cytoscape instance');
+        cy.removeListener('mouseover', 'node');
+        cy.removeListener('mouseout', 'node');
         cy.destroy();
+        setCy(null); // Ensure to reset the state to avoid stale references
       }
     };
-  }, [elements]);
+  }, [elements, updateCytoscape]);
 
   useEffect(() => {
-    // Update visibility based on search term
+    // console.log('CoseGraph useEffect - searchTerm:', searchTerm);
     if (cy) {
-      cy.nodes().forEach(node => {
-        const isVisible = node.data('label').toLowerCase().includes(searchTerm.toLowerCase());
-        node.style('display', isVisible ? 'element' : 'none');
+      cy.batch(() => {
+        cy.nodes().forEach(node => {
+          node.style('display', node.data('label').toLowerCase().includes(searchTerm.toLowerCase()) ? 'element' : 'none');
+        });
       });
     }
-  }, [searchTerm, cy]);  // React only on search term changes
+  }, [searchTerm, cy]);
 
   function showTooltip(position, content) {
     const tooltip = document.getElementById('tooltip');
-    tooltip.style.left = `${position.x}px`;
-    tooltip.style.top = `${position.y}px`;
+    tooltip.style.left = `${position.x + 20}px`;
+    tooltip.style.top = `${position.y + 20}px`;
     tooltip.innerHTML = content;
     tooltip.style.display = 'block';
   }
@@ -112,8 +156,8 @@ const CoseGraph = ({ elements }) => {
         onChange={e => setSearchTerm(e.target.value)}
         style={{ marginBottom: '10px' }}
       />
-      <div ref={cyContainerRef} style={{ width: '800px', height: '600px' }} />
-      <div id="tooltip" style={{ position: 'absolute', display: 'none', backgroundColor: 'white', border: '1px solid black', padding: '10px' }}></div>
+      <div ref={cyContainerRef} style={{ width: '800px', height: '600px', position: 'relative' }} />
+      <div id="tooltip" style={{ position: 'absolute', display: 'none', backgroundColor: 'white', border: '1px solid black', padding: '10px', zIndex: 1000 }}></div>
     </div>
   );
 };

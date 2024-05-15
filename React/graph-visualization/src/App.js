@@ -30,17 +30,17 @@ const App = () => {
     return (
         <div>
             <h1>Network Graph</h1>
+            <Legend />
             {/* <Graph elements={elements} />
             <ErrorBoundary>
                 <ConcGraph elements={elements} />
             </ErrorBoundary> */}
             <ErrorBoundary>
-                <GraphSearch elements={elements} />
-                <CoseGraph elements={elements} />
+                {/* <GraphSearch elements={elements} /> */}
+                {/* <CoseGraph elements={elements} /> */}
+                <Filtering data={elements} />
             </ErrorBoundary>
-            <Filtering data={elements} />
             <button onClick={refreshData}>Refresh Data</button>
-            <Legend />
         </div>
     );
 };

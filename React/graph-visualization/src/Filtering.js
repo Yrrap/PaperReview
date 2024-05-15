@@ -10,7 +10,7 @@ const Filtering = ({ data }) => {
 
   useEffect(() => {
     const filterElements = () => {
-      if (!data || !data.edges) {
+      if (!data || !data.nodes || !data.edges) {
         // If data or data.edges is not available, return default empty structure
         return { nodes: [], edges: [] };
       }
