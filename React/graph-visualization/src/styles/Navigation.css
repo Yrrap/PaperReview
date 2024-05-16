@@ -1,0 +1,28 @@
+/* Navigation.css */
+.nav-bar {
+    background-color: #343a40;
+    padding: 10px 20px;
+  }
+  
+  .nav-bar ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: flex-start;
+  }
+  
+  .nav-bar li {
+    margin-right: 15px;
+  }
+  
+  .nav-bar a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  .nav-bar a:hover {
+    color: #ccc;
+  }
+  

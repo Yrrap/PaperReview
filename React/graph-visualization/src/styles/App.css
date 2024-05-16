@@ -1,0 +1,36 @@
+.app-container {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0f2f5;
+  min-height: 100vh;
+}
+
+.app-header {
+  width: 100%;
+  background-color: #333;
+  padding: 10px 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.app-header a {
+  color: #fff;
+  text-decoration: none;
+  padding: 10px;
+  font-size: 1rem;
+}
+
+.app-header a:hover {
+  color: #ccc;
+}
+
+.app-main {
+  flex: 1;
+  width: 80%;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+  border-radius: 8px;
+  margin-top: 20px;
+}

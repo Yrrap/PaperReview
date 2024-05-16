@@ -1,0 +1,5 @@
+Django==5.0.6
+django-allauth==0.63.0
+django-cors-headers==4.3.1
+django-environ==0.11.2
+psycopg2-binary==2.9.9

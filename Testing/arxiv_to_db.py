@@ -40,13 +40,15 @@ def fetch_arxiv_papers():
         abstract = entry.find('{http://www.w3.org/2005/Atom}summary').text.strip()
         published = entry.find('{http://www.w3.org/2005/Atom}published').text[:4]  # Year only
         keywords = ['machine learning']  # Example keyword
+        subject = 'Machine Learning'  # Example subject
 
         papers.append({
             'title': title,
             'authors': authors,
             'abstract': abstract,
             'publication_year': int(published),
-            'keywords': keywords
+            'keywords': keywords,
+            'subject': subject
         })
 
     return papers
@@ -64,6 +66,38 @@ def upsert_papers_to_db(papers):
             password=DB_PASSWORD
         )
         cursor = connection.cursor()
+
+        # Create Subject table if not exists
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS subjects (
+                subject_id SERIAL PRIMARY KEY,
+                name VARCHAR(255) UNIQUE NOT NULL
+            );
+        ''')
+
+        # Insert subjects and get subject IDs
+        subjects = set(paper['subject'] for paper in papers)
+        for subject in subjects:
+            cursor.execute('''
+                INSERT INTO subjects (name)
+                VALUES (%s)
+                ON CONFLICT (name) DO NOTHING;
+            ''', (subject,))
+        cursor.execute('SELECT subject_id, name FROM subjects')
+        subject_ids = {name: subject_id for subject_id, name in cursor.fetchall()}
+
+        # Create Paper table if not exists
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS papers (
+                paper_id SERIAL PRIMARY KEY,
+                title VARCHAR(255) UNIQUE NOT NULL,
+                authors VARCHAR(255),
+                abstract TEXT,
+                publication_year DATE,
+                keywords VARCHAR(255),
+                subject_id INTEGER REFERENCES subjects(subject_id)
+            );
+        ''')
 
         # Create a unique constraint on the title column (if not already created)
         cursor.execute('''
@@ -87,21 +121,23 @@ def upsert_papers_to_db(papers):
                 paper['authors'],
                 paper['abstract'],
                 paper['publication_year'],
-                paper['keywords']
+                paper['keywords'],
+                subject_ids[paper['subject']]
             )
             for paper in papers
         ]
 
         # Upsert logic using ON CONFLICT
         insert_query = '''
-            INSERT INTO papers (title, authors, abstract, publication_year, keywords)
+            INSERT INTO papers (title, authors, abstract, publication_year, keywords, subject_id)
             VALUES %s
             ON CONFLICT (title)
             DO UPDATE SET
                 authors = EXCLUDED.authors,
                 abstract = EXCLUDED.abstract,
                 publication_year = EXCLUDED.publication_year,
-                keywords = EXCLUDED.keywords
+                keywords = EXCLUDED.keywords,
+                subject_id = EXCLUDED.subject_id
             RETURNING paper_id
         '''
 
