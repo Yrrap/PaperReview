@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ subject.name }}</title>
+</head>
+<body>
+    <h1>{{ subject.name }}</h1>
+    <ul>
+        {% for paper in papers %}
+            <li>{{ paper.title }} by {{ paper.authors }}</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'subject_list' %}">Back to Subjects</a>
+</body>
+</html>

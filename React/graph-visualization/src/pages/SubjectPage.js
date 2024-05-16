@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import CoseGraph from '../components/CoseGraph';
 import Filtering from '../components/Filtering';
 import '../styles/SubjectPage.css';
 
@@ -24,7 +23,7 @@ const SubjectPage = () => {
 
   return (
     <div className="subject-page">
-      <h1>Network Graph for {subject}</h1>
+      <h1>Network Graph for {subject.replace(/_/g, ' ')}</h1> {/* Replace underscores with spaces */}
       <Filtering data={data} />
       <button className="refresh-button" onClick={refreshData}>Refresh Data</button>
     </div>
