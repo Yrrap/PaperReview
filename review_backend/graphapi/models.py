@@ -25,9 +25,9 @@ class Paper(models.Model):
     abstract = models.TextField(default='No abstract available.')
     publication_year = models.DateField(null=True, blank=True)  # Allow null and blank values for date
     keywords = models.CharField(max_length=255, default='')  # Default value
-    subjects = models.ManyToManyField(Subject, related_name='papers')
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='papers', null=True)  # Add the subject_id field here
     cited_references = models.ManyToManyField('self', symmetrical=False, through='Link', related_name='referenced_by')
-    
+
     class Meta:
         db_table = 'papers'
 

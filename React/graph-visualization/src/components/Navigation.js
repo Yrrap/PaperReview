@@ -14,11 +14,14 @@ const Navigation = () => {
 
   return (
     <nav>
-      {subjects.map(subject => (
-        <Link key={subject.subject_id} to={`/subject/${subject.name}`}>
-          {subject.name}
-        </Link>
-      ))}
+      <div className="dropdown">
+        <button className="dropbtn">Subjects</button>
+        <div className="dropdown-content">
+          {subjects.map(subject => (
+            <Link key={subject.subject_id} to={`/subject/${subject.subject_id}`}>{subject.display_name}</Link>
+          ))}
+        </div>
+      </div>
     </nav>
   );
 };

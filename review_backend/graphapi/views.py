@@ -1,18 +1,20 @@
-from django.shortcuts import get_object_or_404, render
 from django.http import JsonResponse
 from graphapi.models import Paper, Link, Subject
 import logging
 
 logger = logging.getLogger(__name__)
 
-def graph_data(request, subject_id):
+def subject_list(request):
+    print("subject_list endpoint called")
+    subjects = Subject.objects.all()
+    subject_list = [{"subject_id": subject.subject_id, "name": subject.name, "display_name": subject.display_name} for subject in subjects]
+    return JsonResponse(subject_list, safe=False)
+
+def graph_data_by_subject(request, subject_id):
     try:
-        subject = get_object_or_404(Subject, name=subject_id)
-        nodes = Paper.objects.filter(subject=subject).values('paper_id', 'title')
-        edges = Link.objects.filter(
-            paper_id__in=nodes.values('paper_id'),
-            related_paper_id__in=nodes.values('paper_id')
-        ).values('paper_id', 'related_paper_id', 'relationship_type')
+        print(f"graph_data_by_subject endpoint called with subject_id: {subject_id}")
+        nodes = Paper.objects.filter(subject_id=subject_id).values('paper_id', 'title')
+        edges = Link.objects.filter(paper_id__in=[node['paper_id'] for node in nodes]).values('paper_id', 'related_paper_id', 'relationship_type')
 
         formatted_nodes = [{'data': {'id': str(node['paper_id']), 'label': node['title']}} for node in nodes]
         formatted_edges = [{'data': {'source': str(edge['paper_id']), 'target': str(edge['related_paper_id']), 'label': edge['relationship_type']}} for edge in edges]
@@ -21,16 +23,6 @@ def graph_data(request, subject_id):
     except Exception as e:
         logger.error(f'Error: {e}')
         return JsonResponse({'error': str(e)}, status=500)
-    
-def subject_list(request):
-    subjects = Subject.objects.values('subject_id', 'name')
-    return JsonResponse(list(subjects), safe=False)
 
-def subject_detail(request, subject_id):
-    subject = get_object_or_404(Subject, pk=subject_id)
-    papers = subject.papers.all()
-    context = {
-        'subject': subject,
-        'papers': papers
-    }
-    return render(request, 'subject_detail.html', context)
+def test_cors(request):
+    return JsonResponse({'message': 'CORS is working'})

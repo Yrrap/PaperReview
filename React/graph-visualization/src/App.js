@@ -13,7 +13,7 @@ const App = () => {
         </header>
         <main className="app-main">
           <Routes>
-            <Route path="/subject/:subject" element={<SubjectPage />} />
+            <Route path="/subject/:subject_id" element={<SubjectPage />} />
             <Route path="/" element={<h1>Welcome to the Network Graph App</h1>} />
           </Routes>
         </main>
