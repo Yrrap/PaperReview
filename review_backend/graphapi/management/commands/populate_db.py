@@ -8,9 +8,15 @@ import spacy
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import itertools
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load SpaCy model
 nlp = spacy.load('en_core_web_sm')
+stopwords = nlp.Defaults.stop_words
 
 env = environ.Env()
 # reading .env file
@@ -41,6 +47,8 @@ def fetch_arxiv_papers(subject_id):
         title = entry.find('{http://www.w3.org/2005/Atom}title').text.strip()
         authors = ', '.join([author.find('{http://www.w3.org/2005/Atom}name').text for author in entry.findall('{http://www.w3.org/2005/Atom}author')])
         abstract = entry.find('{http://www.w3.org/2005/Atom}summary').text.strip()
+        if not abstract or all(word in stopwords for word in abstract.split()):
+            continue
         published = entry.find('{http://www.w3.org/2005/Atom}published').text[:4]
         keywords = [subject_id]
         subject = subject_id
@@ -78,13 +86,19 @@ def upsert_papers_to_db(papers):
             );
         ''')
 
-        subjects = set((paper['subject'], paper['subject']) for paper in papers)
-        for subject, display_name in subjects:
+        subjects = {
+            'cs.LG': 'Machine Learning',
+            'q-bio.NC': 'Neuroscience',
+            'eess.SY': 'Electrical Engineering'
+        }
+
+        for subject, display_name in subjects.items():
             cursor.execute('''
                 INSERT INTO subjects (name, display_name)
                 VALUES (%s, %s)
                 ON CONFLICT (name) DO NOTHING;
             ''', (subject, display_name))
+
         cursor.execute('SELECT subject_id, name FROM subjects')
         subject_ids = {name: subject_id for subject_id, name in cursor.fetchall()}
 
@@ -144,7 +158,7 @@ def upsert_papers_to_db(papers):
         connection.commit()
 
     except Exception as e:
-        print(f'Error: {e}')
+        logger.error(f'Error: {e}')
     finally:
         if cursor:
             cursor.close()
@@ -153,8 +167,14 @@ def upsert_papers_to_db(papers):
 
 # Function to calculate similarity between papers
 def calculate_similarities(papers):
-    abstracts = [paper['abstract'] for paper in papers]
-    vectorizer = TfidfVectorizer().fit_transform(abstracts)
+    valid_abstracts = [paper['abstract'] for paper in papers if paper['abstract'].strip() and any(word.lower() not in stopwords for word in paper['abstract'].split())]
+    
+    if not valid_abstracts:
+        logger.warning("No valid abstracts found for similarity calculation.")
+        return None
+
+    logger.info(f"Number of valid abstracts: {len(valid_abstracts)}")
+    vectorizer = TfidfVectorizer().fit_transform(valid_abstracts)
     vectors = vectorizer.toarray()
     cosine_similarities = cosine_similarity(vectors)
     return cosine_similarities
@@ -214,7 +234,7 @@ def insert_links(papers, similarities):
 
         connection.commit()
     except Exception as e:
-        print(f'Error: {e}')
+        logger.error(f'Error: {e}')
     finally:
         if cursor:
             cursor.close()
@@ -225,10 +245,11 @@ class Command(BaseCommand):
     help = 'Populate the database with papers from arXiv'
 
     def handle(self, *args, **kwargs):
-        subject_name = 'Machine Learning'  # Change as needed
-        subject_id = SUBJECT_IDS[subject_name]
-        papers = fetch_arxiv_papers(subject_id)
-        upsert_papers_to_db(papers)
+        all_papers = []
+        for subject_name, subject_id in SUBJECT_IDS.items():
+            papers = fetch_arxiv_papers(subject_id)
+            all_papers.extend(papers)
+            upsert_papers_to_db(papers)
 
         connection = psycopg2.connect(
             host=DB_HOST,
@@ -242,10 +263,14 @@ class Command(BaseCommand):
         cursor.close()
         connection.close()
 
-        for paper in papers:
+        for paper in all_papers:
             cleaned_title = paper['title'].replace('\n', ' ').strip()
             paper['paper_id'] = paper_ids.get(cleaned_title)
 
-        similarities = calculate_similarities(papers)
-        insert_links(papers, similarities)
-        self.stdout.write(self.style.SUCCESS(f'{len(papers)} papers have been inserted or updated in the database.'))
+        similarities = calculate_similarities(all_papers)
+        
+        if similarities is not None and similarities.size > 0:
+            insert_links(all_papers, similarities)
+            self.stdout.write(self.style.SUCCESS(f'{len(all_papers)} papers have been inserted or updated in the database.'))
+        else:
+            self.stdout.write(self.style.WARNING('No similarities were calculated due to empty or invalid abstracts.'))

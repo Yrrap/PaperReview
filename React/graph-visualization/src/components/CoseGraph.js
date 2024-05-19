@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import cytoscape from 'cytoscape';
 import fcose from 'cytoscape-fcose';
-import '../styles/CoseGraph.css';
+import '../styles/Graph.css';
 
 cytoscape.use(fcose);
 
@@ -21,13 +21,14 @@ const CoseGraph = ({ elements }) => {
   const [cy, setCy] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Initialize or update Cytoscape instance with throttle
   const updateCytoscape = useCallback(
     throttle((combinedElements) => {
       if (!cyContainerRef.current) {
         console.error('Cytoscape container is not set');
         return;
       }
+
+      console.log('Updating Cytoscape container:', cyContainerRef.current);
 
       if (combinedElements.length > 0) {
         if (!cy) {
@@ -82,13 +83,14 @@ const CoseGraph = ({ elements }) => {
 
           setCy(newCy);
         } else {
-          // Update existing instance with new elements
           console.log('CoseGraph useEffect - updating Cytoscape instance');
           try {
             cy.batch(() => {
               cy.elements().remove();
               cy.add(combinedElements);
               cy.layout({ name: 'fcose', idealEdgeLength: 100, nodeRepulsion: 4500, animate: false }).run();
+              cy.resize(); // Ensure Cytoscape resizes to container dimensions
+              cy.fit(); // Fit the graph to the container
             });
           } catch (error) {
             console.error('Error running layout:', error);
@@ -117,7 +119,7 @@ const CoseGraph = ({ elements }) => {
         cy.removeListener('mouseover', 'node');
         cy.removeListener('mouseout', 'node');
         cy.destroy();
-        setCy(null); // Ensure to reset the state to avoid stale references
+        setCy(null);
       }
     };
   }, [elements, updateCytoscape]);
@@ -147,9 +149,9 @@ const CoseGraph = ({ elements }) => {
   }
 
   return (
-    <div className="cose-graph-wrapper">
+    <div className="graph-wrapper">
       <div
-        className="cose-graph-container"
+        className="graph-container"
         ref={cyContainerRef}
       />
       <div id="tooltip" className="tooltip"></div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CoseGraph from './CoseGraph';
-import '../styles/Filtering.css';
+import '../styles/Global.css';
+import '../styles/Graph.css';
 
 const Filtering = ({ data }) => {
   const [relatedField, setRelatedField] = useState(true);
@@ -11,9 +12,7 @@ const Filtering = ({ data }) => {
 
   useEffect(() => {
     const filterElements = () => {
-      if (!data || !data.nodes || !data.edges) {
-        return { nodes: [], edges: [] };
-      }
+      if (!data || !data.nodes || !data.edges) return { nodes: [], edges: [] };
 
       const filteredEdges = data.edges.filter(edge => {
         if (!relatedField && edge.data.label === 'related field') return false;

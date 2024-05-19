@@ -2,7 +2,10 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Navigation from './components/Navigation';
 import SubjectPage from './pages/SubjectPage';
+import './styles/Global.css';
 import './styles/App.css';
+import './styles/Navigation.css';
+
 
 const App = () => {
   return (
