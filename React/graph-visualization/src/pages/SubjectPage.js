@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Filtering from '../components/Filtering';
-import '../styles/Global.css';
-import '../styles/Page.css';
+import '../styles/App.css';
 
 const SubjectPage = () => {
   const { subject_id } = useParams();
   const [data, setData] = useState({ nodes: [], edges: [] });
+  const [subject, setSubject] = useState({});
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/api/graph_data/${subject_id}`)
+    fetch(`http://127.0.0.1:8000/api/subjects/${subject_id}/`)
+      .then(response => response.json())
+      .then(data => setSubject(data))
+      .catch(error => console.error('Error fetching subject name:', error));
+
+    fetch(`http://127.0.0.1:8000/api/graph_data/${subject_id}/`)
       .then(response => response.json())
       .then(data => {
         const nodeIds = new Set(data.nodes.map(node => node.data.id));
@@ -20,7 +25,7 @@ const SubjectPage = () => {
   }, [subject_id]);
 
   const refreshData = () => {
-    fetch(`http://127.0.0.1:8000/api/graph_data/${subject_id}`)
+    fetch(`http://127.0.0.1:8000/api/graph_data/${subject_id}/`)
       .then(response => response.json())
       .then(data => {
         const nodeIds = new Set(data.nodes.map(node => node.data.id));
@@ -31,10 +36,15 @@ const SubjectPage = () => {
   };
 
   return (
-    <div className="subject-page">
-      <h1>Network Graph for {subject_id}</h1>
-      <Filtering data={data} />
-      <button className="refresh-button" onClick={refreshData}>Refresh Data</button>
+    <div className="app-container">
+      <header className="app-header">
+        <a href="/">Subjects</a>
+      </header>
+      <main>
+        <h1>Network Graph for {subject.display_name}</h1>
+        <Filtering data={data} />
+        <button onClick={refreshData}>Refresh Data</button>
+      </main>
     </div>
   );
 };

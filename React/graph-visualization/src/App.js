@@ -2,9 +2,11 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Navigation from './components/Navigation';
 import SubjectPage from './pages/SubjectPage';
-import './styles/Global.css';
-import './styles/App.css';
-import './styles/Navigation.css';
+import Home from './pages/Home';
+import CytoscapeHelp from './pages/CytoscapeHelp';
+// import './styles/Global.css';
+// import './styles/App.css';
+// import './styles/Navigation.css';
 
 
 const App = () => {
@@ -17,7 +19,8 @@ const App = () => {
         <main className="app-main">
           <Routes>
             <Route path="/subject/:subject_id" element={<SubjectPage />} />
-            <Route path="/" element={<h1>Welcome to the Network Graph App</h1>} />
+            <Route path="/" element={<Home />} />
+            <Route path="/cytoscape-help" element={<CytoscapeHelp />} />
           </Routes>
         </main>
       </div>

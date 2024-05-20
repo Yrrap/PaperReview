@@ -1,0 +1,48 @@
+/* Add any global styles for the help page */
+.help-container {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f0f2f5;
+    min-height: 100vh;
+    width: 100%;
+    padding: 20px;
+  }
+  
+  .help-header {
+    width: 100%;
+    background-color: #333;
+    padding: 20px;
+    color: #fff;
+    text-align: center;
+  }
+  
+  .help-main {
+    flex: 1;
+    width: 100%;
+    max-width: 800px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .help-main h2 {
+    margin-top: 20px;
+  }
+  
+  .help-footer {
+    margin-top: 20px;
+    text-align: center;
+  }
+  
+  .help-footer a {
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .help-footer a:hover {
+    text-decoration: underline;
+  }
+  

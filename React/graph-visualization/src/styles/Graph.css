@@ -1,4 +1,3 @@
-/* Graph.css */
 .graph-wrapper {
   width: 100%;
   height: 80vh;
@@ -52,4 +51,35 @@
 
 .legend-text {
   font-size: 0.9rem;
+}
+
+.search-terms {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.search-term {
+  background-color: #ddd;
+  border-radius: 4px;
+  padding: 5px;
+  margin: 5px;
+  display: flex;
+  align-items: center;
+}
+
+.search-term button {
+  margin-left: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: red;
+  font-weight: bold;
+}
+
+.search-terms input {
+  margin: 5px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }

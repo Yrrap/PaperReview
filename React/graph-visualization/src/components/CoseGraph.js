@@ -75,7 +75,7 @@ const CoseGraph = ({ elements }) => {
 
           newCy.on('mouseover', 'node', (event) => {
             const nodeData = event.target.data();
-            const tooltipContent = `Title: ${nodeData.label}, Author: ${nodeData.author || 'undefined'}`;
+            const tooltipContent = `Title: ${nodeData.label}, Author(s): ${nodeData.author || 'undefined'}`;
             showTooltip(event.renderedPosition, tooltipContent);
           });
 

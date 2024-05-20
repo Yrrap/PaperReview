@@ -1,6 +1,4 @@
 import React from 'react';
-import '../styles/Global.css';
-import '../styles/Graph.css';
 
 const LegendList = [
   { colour: '#0ff', label: 'Related Field', id: 1 },

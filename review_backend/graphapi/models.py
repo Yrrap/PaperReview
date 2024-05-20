@@ -5,6 +5,8 @@ class Subject(models.Model):
     subject_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255, unique=True)  # URL-friendly name
     display_name = models.CharField(max_length=255, default='')  # Default value for display purposes
+    overarching_subject = models.CharField(max_length=255, default='General')  # Default value
+    paper_count = models.IntegerField(default=0, null = True)  # Default value
 
     class Meta:
         db_table = 'subjects'
