@@ -39,6 +39,12 @@ const Navigation = () => {
           ))}
         </div>
       </div>
+      <div className="add-connection">
+        <Link to="/add-connection">Add Connection</Link>
+      </div>
+      <div className="cytoscape-help">
+        <Link to="/cytoscape-help">Cytoscape Help</Link>
+      </div>
     </nav>
   );
 };

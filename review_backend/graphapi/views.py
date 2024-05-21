@@ -2,9 +2,32 @@
 from django.http import JsonResponse
 from graphapi.models import Paper, Link, Subject
 from django.db.models import Q
+from django.views.decorators.csrf import csrf_exempt
+import json
 import logging
 
 logger = logging.getLogger(__name__)
+
+@csrf_exempt
+def add_connections(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        subject_id = data['subjectId']
+        connections = data['connections']
+
+        for conn in connections:
+            paper_id = conn['data']['id']
+            related_paper_id = conn['data']['related_id']  # Adjust this as needed
+            relationship_type = 'user-defined'  # You can customize this
+
+            Link.objects.get_or_create(
+                paper_id_id=paper_id,
+                related_paper_id_id=related_paper_id,
+                defaults={'relationship_type': relationship_type}
+            )
+        return JsonResponse({'status': 'success'})
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
 
 def subject_list(request):
     try:

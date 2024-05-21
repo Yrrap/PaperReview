@@ -4,6 +4,7 @@ import Navigation from './components/Navigation';
 import SubjectPage from './pages/SubjectPage';
 import Home from './pages/Home';
 import CytoscapeHelp from './pages/CytoscapeHelp';
+import AddConnectionPage from './pages/AddConnectionPage';
 // import './styles/Global.css';
 // import './styles/App.css';
 // import './styles/Navigation.css';
@@ -20,6 +21,7 @@ const App = () => {
           <Routes>
             <Route path="/subject/:subject_id" element={<SubjectPage />} />
             <Route path="/" element={<Home />} />
+            <Route path="/add-connection" element={<AddConnectionPage />} />
             <Route path="/cytoscape-help" element={<CytoscapeHelp />} />
           </Routes>
         </main>

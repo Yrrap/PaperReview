@@ -6,4 +6,5 @@ urlpatterns = [
     path('subjects/<int:subject_id>/', views.subject_detail, name='subject_detail'),
     path('graph_data/<int:subject_id>/', views.graph_data_by_subject, name='graph_data_by_subject'),
     path('search/', views.search_papers, name='search_papers'), 
+    path('add_connections/', views.add_connections),
 ]
