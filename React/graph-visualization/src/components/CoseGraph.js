@@ -46,7 +46,7 @@ const CoseGraph = ({ elements }) => {
               {
                 selector: 'node',
                 style: {
-                  'background-color': '#666',
+                  'background-color': ele => ele.data('highlighted') ? '#ff0' : '#666',
                   'label': 'data(label)',
                   'text-valign': 'center',
                   'color': '#fff',
@@ -150,10 +150,7 @@ const CoseGraph = ({ elements }) => {
 
   return (
     <div className="graph-wrapper">
-      <div
-        className="graph-container"
-        ref={cyContainerRef}
-      />
+      <div className="graph-container" ref={cyContainerRef} />
       <div id="tooltip" className="tooltip"></div>
     </div>
   );
