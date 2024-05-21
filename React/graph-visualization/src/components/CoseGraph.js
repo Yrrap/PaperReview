@@ -32,7 +32,7 @@ const CoseGraph = ({ elements }) => {
 
       if (combinedElements.length > 0) {
         if (!cy) {
-          console.log('CoseGraph useEffect - initializing new Cytoscape instance');
+          console.log('Initializing new Cytoscape instance');
           const newCy = cytoscape({
             container: cyContainerRef.current,
             elements: combinedElements,
@@ -47,7 +47,7 @@ const CoseGraph = ({ elements }) => {
                 selector: 'node',
                 style: {
                   'background-color': ele => ele.data('highlighted') ? '#ff0' : '#666',
-                  'label': 'data(label)',
+                  // 'label': 'data(label)',
                   'text-valign': 'center',
                   'color': '#fff',
                   'width': '20px',
@@ -83,7 +83,7 @@ const CoseGraph = ({ elements }) => {
 
           setCy(newCy);
         } else {
-          console.log('CoseGraph useEffect - updating Cytoscape instance');
+          console.log('Updating existing Cytoscape instance');
           try {
             cy.batch(() => {
               cy.elements().remove();
@@ -150,7 +150,10 @@ const CoseGraph = ({ elements }) => {
 
   return (
     <div className="graph-wrapper">
-      <div className="graph-container" ref={cyContainerRef} />
+      <div
+        className="graph-container"
+        ref={cyContainerRef}
+      />
       <div id="tooltip" className="tooltip"></div>
     </div>
   );

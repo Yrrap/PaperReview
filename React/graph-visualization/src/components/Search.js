@@ -1,26 +1,26 @@
 import React, { useState } from 'react';
 
-const Search = ({ onSearch }) => {
+const Search = ({ onSearch, onReset }) => {
   const [query, setQuery] = useState('');
 
   const handleSearch = () => {
-    onSearch(query);
+    if (query.trim() === '') {
+      onReset();
+    } else {
+      onSearch(query);
+    }
   };
 
   return (
-    <div className="search-bar">
+    <div>
       <input
         type="text"
-        placeholder="Search papers..."
         value={query}
         onChange={e => setQuery(e.target.value)}
-        onKeyDown={e => {
-          if (e.key === 'Enter') {
-            handleSearch();
-          }
-        }}
+        placeholder="Search for papers"
       />
       <button onClick={handleSearch}>Search</button>
+      <button onClick={onReset}>Reset</button>
     </div>
   );
 };
