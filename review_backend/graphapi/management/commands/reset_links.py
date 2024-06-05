@@ -29,8 +29,8 @@ class Command(BaseCommand):
             )
             cursor = connection.cursor()
 
-            cursor.execute('TRUNCATE TABLE connection_types, links, papers, subjects RESTART IDENTITY CASCADE;')
-            cursor.execute('UPDATE subjects SET paper_count = 0;')
+            cursor.execute('TRUNCATE TABLE connection_types, links RESTART IDENTITY CASCADE;')
+            # cursor.execute('UPDATE subjects SET paper_count = 0;')
             connection.commit()
 
             self.stdout.write(self.style.SUCCESS('Successfully reset the database tables.'))

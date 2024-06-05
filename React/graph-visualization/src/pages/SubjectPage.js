@@ -69,7 +69,7 @@ const SubjectPage = () => {
         ) : (
           <Filtering data={data} />
         )}
-        <button onClick={resetSearch}>Reset Search</button>
+        {/* <button onClick={resetSearch}>Reset Search</button> */}
       </main>
     </div>
   );

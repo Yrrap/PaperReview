@@ -1,6 +1,5 @@
-# views.py
 from django.http import JsonResponse
-from graphapi.models import Paper, Link, Subject
+from graphapi.models import Paper, Link, Subject, ConnectionType
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -17,13 +16,13 @@ def add_connections(request):
 
         for conn in connections:
             paper_id = conn['data']['id']
-            related_paper_id = conn['data']['related_id']  # Adjust this as needed
-            relationship_type = 'user-defined'  # You can customize this
+            related_paper_id = conn['data']['related_id']
+            relationship_type_id = conn['data']['relationship_type_id']
 
             Link.objects.get_or_create(
                 paper_id_id=paper_id,
                 related_paper_id_id=related_paper_id,
-                defaults={'relationship_type': relationship_type}
+                defaults={'relationship_type_id': relationship_type_id}
             )
         return JsonResponse({'status': 'success'})
 
@@ -51,10 +50,10 @@ def subject_detail(request, subject_id):
 def graph_data_by_subject(request, subject_id):
     try:
         nodes = Paper.objects.filter(subject_id=subject_id).values('paper_id', 'title', 'authors')
-        edges = Link.objects.filter(paper_id__in=[node['paper_id'] for node in nodes]).values('paper_id', 'related_paper_id', 'relationship_type')
+        edges = Link.objects.filter(paper_id__in=[node['paper_id'] for node in nodes]).select_related('relationship_type').values('paper_id', 'related_paper_id', 'relationship_type__name')
 
         formatted_nodes = [{'data': {'id': str(node['paper_id']), 'label': node['title'], 'author': node['authors']}} for node in nodes]
-        formatted_edges = [{'data': {'source': str(edge['paper_id']), 'target': str(edge['related_paper_id']), 'label': edge['relationship_type']}} for edge in edges]
+        formatted_edges = [{'data': {'source': str(edge['paper_id']), 'target': str(edge['related_paper_id']), 'label': edge['relationship_type__name']}} for edge in edges]
 
         return JsonResponse({'nodes': formatted_nodes, 'edges': formatted_edges})
     except Exception as e:
@@ -82,7 +81,7 @@ def search_papers(request):
 
         connected_edges = Link.objects.filter(
             Q(paper_id__in=node_ids) | Q(related_paper_id__in=node_ids)
-        )
+        ).select_related('relationship_type')
 
         connected_node_ids = set()
         for edge in connected_edges:
@@ -92,10 +91,9 @@ def search_papers(request):
         all_nodes = Paper.objects.filter(paper_id__in=connected_node_ids)
 
         formatted_nodes = [{'data': {'id': str(node.paper_id), 'label': node.title, 'author': node.authors, 'highlighted': node in nodes}} for node in all_nodes]
-        formatted_edges = [{'data': {'source': str(edge.paper_id_id), 'target': str(edge.related_paper_id_id), 'label': edge.relationship_type}} for edge in connected_edges]
+        formatted_edges = [{'data': {'source': str(edge.paper_id_id), 'target': str(edge.related_paper_id_id), 'label': edge.relationship_type.name}} for edge in connected_edges]
 
         return JsonResponse({'nodes': formatted_nodes, 'edges': formatted_edges})
     except Exception as e:
         logger.error(f"Error during search: {e}")
         return JsonResponse({'error': str(e)}, status=500)
-    

@@ -13,38 +13,36 @@ const Navigation = () => {
   }, []);
 
   const categorizedSubjects = subjects.reduce((acc, subject) => {
-    const category = subject.overarching_subject || 'Other'; // Assuming each subject has a 'overarching_subject' field
+    const category = subject.overarching_subject || 'Other'; 
     if (!acc[category]) acc[category] = [];
     acc[category].push(subject);
     return acc;
   }, {});
 
   return (
-    <nav>
-      <div className="home">
-        <Link to="/">Home</Link>
-      </div>
-      <div className="dropdown">
-        <button className="dropbtn">Subjects</button>
-        <div className="dropdown-content">
-          {Object.keys(categorizedSubjects).map(category => (
-            <div key={category} className="category">
-              <h4>{category}</h4>
-              {categorizedSubjects[category].map(subject => (
-                <Link key={subject.subject_id} to={`/subject/${subject.subject_id}`}>
-                  {subject.display_name}
-                </Link>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="add-connection">
-        <Link to="/add-connection">Add Connection</Link>
-      </div>
-      <div className="cytoscape-help">
-        <Link to="/cytoscape-help">Cytoscape Help</Link>
-      </div>
+    <nav className="nav-bar">
+      <ul>
+        <li><Link to="/">Home</Link></li>
+        <li className="dropdown">
+          <span className="dropbtn">Subjects</span>
+          <div className="dropdown-content">
+            {Object.keys(categorizedSubjects).map(category => (
+              <div key={category} className="category">
+                <span className="category-title">{category}</span>
+                <div className="nested-dropdown">
+                  {categorizedSubjects[category].map(subject => (
+                    <Link key={subject.subject_id} to={`/subject/${subject.subject_id}`}>
+                      {subject.display_name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </li>
+        <li><Link to="/add-connection">Add Connection</Link></li>
+        <li><Link to="/cytoscape-help">Cytoscape Help</Link></li>
+      </ul>
     </nav>
   );
 };

@@ -36,15 +36,26 @@ class Paper(models.Model):
     def __str__(self):
         return self.title
 
+class ConnectionType(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    count = models.IntegerField(default=0)
+
+    class Meta:
+        db_table = 'connection_types'
+
+    def __str__(self):
+        return self.name
+
 # Link model to store relationships between papers
 class Link(models.Model):
     link_id = models.AutoField(primary_key=True)
     paper_id = models.ForeignKey(Paper, on_delete=models.CASCADE, related_name='outgoing_links', db_column='paper_id')
     related_paper_id = models.ForeignKey(Paper, on_delete=models.CASCADE, related_name='incoming_links', db_column='related_paper_id')
-    relationship_type = models.CharField(max_length=255, default='Unknown')  # Default value
+    relationship_type = models.ForeignKey(ConnectionType, on_delete=models.CASCADE, related_name='links', null=True)
 
     class Meta:
         db_table = 'links'
 
     def __str__(self):
         return f"{self.paper_id.title} -> {self.related_paper_id.title} ({self.relationship_type})"
+    

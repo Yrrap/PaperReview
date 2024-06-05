@@ -177,86 +177,12 @@ def upsert_papers_to_db(papers):
             cursor.close()
         if connection:
             connection.close()
-
-# Function to calculate similarity between papers
-def calculate_similarities(papers):
-    valid_abstracts = [paper['abstract'] for paper in papers if paper['abstract'].strip() and any(word.lower() not in stopwords for word in paper['abstract'].split())]
-
-    if not valid_abstracts:
-        logger.warning("No valid abstracts found for similarity calculation.")
-        return None
-
-    logger.info(f"Number of valid abstracts: {len(valid_abstracts)}")
-    vectorizer = TfidfVectorizer().fit_transform(valid_abstracts)
-    vectors = vectorizer.toarray()
-    cosine_similarities = cosine_similarity(vectors)
-    return cosine_similarities
-
+            
 def preprocess_abstracts(papers):
     for paper in papers:
         paper['doc'] = nlp(paper['abstract'])
-
-def determine_relationship_type(doc1, doc2):
-    method_keywords = ['algorithm', 'method', 'approach', 'technique', 'model']
-    result_keywords = ['result', 'finding', 'outcome', 'conclusion', 'evidence']
-    field_keywords = ['field', 'area', 'domain', 'topic', 'discipline']
-
-    for token in doc1:
-        if token.lemma_ in method_keywords and token.lemma_ in doc2.text:
-            return 'similar methods'
-
-    for token in doc1:
-        if token.lemma_ in result_keywords and token.lemma_ in doc2.text:
-            return 'similar results'
-
-    for token in doc1:
-        if token.lemma_ in field_keywords and token.lemma_ in doc2.text:
-            return 'related field'
-
-    return None
-
-# Function to insert relationships into links table based on similarities
-def insert_links(papers, similarities):
-    connection = None
-    cursor = None
-
-    try:
-        connection = psycopg2.connect(
-            host=DB_HOST,
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD
-        )
-        cursor = connection.cursor()
-
-        cursor.execute('SELECT id, name FROM connection_types')
-        connection_type_ids = {name: id for id, name in cursor.fetchall()}
-
-        links_data = []
-        for i, j in itertools.combinations(range(len(papers)), 2):
-            similarity = similarities[i][j]
-            if similarity > 0.2:
-                relationship_type = determine_relationship_type(papers[i]['doc'], papers[j]['doc'])
-                if relationship_type is not None:
-                    links_data.append((papers[i]['paper_id'], papers[j]['paper_id'], connection_type_ids[relationship_type]))
-
-        if links_data:
-            insert_query = '''
-                INSERT INTO links (paper_id, related_paper_id, relationship_type_id)
-                VALUES %s
-                ON CONFLICT DO NOTHING
-            '''
-            execute_values(cursor, insert_query, links_data)
-
-        connection.commit()
-    except Exception as e:
-        logger.error(f'Error: {e}')
-    finally:
-        if cursor:
-            cursor.close()
-        if connection:
-           connection.close()
-
+        
+        
 class Command(BaseCommand):
     help = 'Populate the database with papers from arXiv'
 
@@ -292,15 +218,7 @@ class Command(BaseCommand):
         for paper in all_papers:
             cleaned_title = paper['title'].replace('\n', ' ').strip()
             paper['paper_id'] = paper_ids.get(cleaned_title)
-
-        preprocess_abstracts(all_papers)
-        similarities = calculate_similarities(all_papers)
-
-        if similarities is not None and similarities.size > 0:
-            insert_links(all_papers, similarities)
-            self.stdout.write(self.style.SUCCESS(f'{len(all_papers)} papers have been inserted or updated in the database.'))
-        else:
-            self.stdout.write(self.style.WARNING('No similarities were calculated due to empty or invalid abstracts.'))
+        logger.info('Finished fetching papers from arXiv')
 
 if __name__ == '__main__':
     command = Command()
