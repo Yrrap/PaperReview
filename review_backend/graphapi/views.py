@@ -17,7 +17,7 @@ def add_connections(request):
         for conn in connections:
             paper_id = conn['data']['id']
             related_paper_id = conn['data']['related_id']
-            relationship_type_id = conn['data']['relationship_type_id']
+            relationship_type_id = conn['connectionType']
 
             Link.objects.get_or_create(
                 paper_id_id=paper_id,
@@ -27,6 +27,43 @@ def add_connections(request):
         return JsonResponse({'status': 'success'})
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@csrf_exempt
+def remove_connection(request, connection_id):
+    if request.method == 'DELETE':
+        try:
+            connection = Link.objects.get(pk=connection_id)
+            connection.delete()
+            return JsonResponse({'status': 'success'})
+        except Link.DoesNotExist:
+            return JsonResponse({'error': 'Connection not found'}, status=404)
+        except Exception as e:
+            logger.error(f"Error removing connection {connection_id}: {e}")
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+def connections_by_paper(request, paper_id):
+    try:
+        links = Link.objects.filter(Q(paper_id=paper_id) | Q(related_paper_id=paper_id)).select_related('relationship_type', 'paper_id', 'related_paper_id')
+        data = [{
+            'source': {'id': link.paper_id.paper_id, 'title': link.paper_id.title},
+            'target': {'id': link.related_paper_id.paper_id, 'title': link.related_paper_id.title},
+            'type': {'id': link.relationship_type.id, 'name': link.relationship_type.name}
+        } for link in links]
+        return JsonResponse(data, safe=False)
+    except Exception as e:
+        logger.error(f"Error fetching connections for paper {paper_id}: {e}")
+        return JsonResponse({'error': str(e)}, status=500)
+
+def connection_types(request):
+    try:
+        connection_types = ConnectionType.objects.all()
+        data = [{"id": type.id, "name": type.name} for type in connection_types]
+        return JsonResponse(data, safe=False)
+    except Exception as e:
+        logger.error(f"Error fetching connection types: {e}")
+        return JsonResponse({'error': str(e)}, status=500)
 
 def subject_list(request):
     try:

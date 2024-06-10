@@ -1,31 +1,120 @@
-// AddConnectionPage.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import '../styles/AddConnectionPage.css';
 
-const AddConnectionPage = ({ subjectId }) => {
+const AddConnectionPage = () => {
+  const { subjectId } = useParams();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
-  const [selectedPaper, setSelectedPaper] = useState(null);
   const [connections, setConnections] = useState([]);
-  
-  const handleSearch = () => {
-    fetch(`http://127.0.0.1:8000/api/search/?q=${query}&subject_id=${subjectId}`)
+  const [subjects, setSubjects] = useState([]);
+  const [selectedSubject, setSelectedSubject] = useState('');
+  const [connectionTypes, setConnectionTypes] = useState([]);
+  const [selectedConnectionType, setSelectedConnectionType] = useState('');
+  const [existingConnections, setExistingConnections] = useState([]);
+  const [originalPaper, setOriginalPaper] = useState(null);
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/api/subjects/')
       .then(response => response.json())
-      .then(data => setResults(data.nodes))
+      .then(data => setSubjects(data))
+      .catch(error => console.error('Error fetching subjects:', error));
+  }, []);
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/api/connection_types/')
+      .then(response => response.json())
+      .then(data => setConnectionTypes(data))
+      .catch(error => console.error('Error fetching connection types:', error));
+  }, []);
+
+  const fetchExistingConnections = (paperId) => {
+    fetch(`http://127.0.0.1:8000/api/connections/${paperId}`)
+      .then(response => response.json())
+      .then(data => {
+        console.log('Fetched existing connections:', data);
+        if (Array.isArray(data)) {
+          setExistingConnections(data);
+        } else {
+          setExistingConnections([]);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching existing connections:', error);
+        setExistingConnections([]);
+      });
+  };
+
+  const handleSearch = () => {
+    if (!query || !selectedSubject) {
+      console.error('Query or selected subject is missing');
+      return;
+    }
+
+    fetch(`http://127.0.0.1:8000/api/search/?q=${query}&subject_id=${selectedSubject}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.nodes) {
+          setResults(data.nodes);
+        } else {
+          console.error('No nodes found in the response');
+        }
+      })
       .catch(error => console.error('Error fetching search results:', error));
   };
 
+  const handleSelectOriginalPaper = (paper) => {
+    setOriginalPaper(paper);
+    fetchExistingConnections(paper.data.id);
+  };
+
   const handleAddConnection = (paper) => {
-    setConnections([...connections, paper]);
+    if (!selectedConnectionType) {
+      console.error('Connection type is missing');
+      return;
+    }
+
+    const connection = {
+      originalPaper,
+      relatedPaper: paper,
+      connectionType: selectedConnectionType
+    };
+
+    console.log('Adding connection:', connection);
+    setConnections([...connections, connection]);
+    setSelectedConnectionType('');
+  };
+
+  const handleRemoveConnection = (index) => {
+    const newConnections = connections.slice();
+    newConnections.splice(index, 1);
+    setConnections(newConnections);
+  };
+
+  const handleRemoveExistingConnection = (connectionId) => {
+    fetch(`http://127.0.0.1:8000/api/remove_connection/${connectionId}`, {
+      method: 'DELETE',
+    })
+      .then(response => {
+        if (response.ok) {
+          setExistingConnections(existingConnections.filter(conn => conn.id !== connectionId));
+        } else {
+          throw new Error('Failed to remove connection');
+        }
+      })
+      .catch(error => console.error('Error removing connection:', error));
   };
 
   const handleSaveConnections = () => {
-    // Implement the logic to save connections to the backend
-    console.log('Save connections:', connections);
-    // Example API call to save connections
     fetch(`http://127.0.0.1:8000/api/add_connections/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ connections, subjectId })
+      body: JSON.stringify({ connections, subjectId: selectedSubject })
     })
       .then(response => response.json())
       .then(data => {
@@ -35,33 +124,155 @@ const AddConnectionPage = ({ subjectId }) => {
       .catch(error => console.error('Error saving connections:', error));
   };
 
+  const categorisedSubjects = subjects.reduce((acc, subject) => {
+    const category = subject.overarching_subject || 'Other';
+    if (!acc[category]) acc[category] = [];
+    acc[category].push(subject);
+    return acc;
+  }, {});
+
+  // Sort subjects within each category alphabetically
+  Object.keys(categorisedSubjects).forEach(category => {
+    categorisedSubjects[category].sort((a, b) => a.display_name.localeCompare(b.display_name));
+  });
+
   return (
-    <div>
+    <div className="container">
       <h1>Add Connections</h1>
-      <input
-        type="text"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search for papers"
-      />
-      <button onClick={handleSearch}>Search</button>
-      <ul>
-        {results.map(paper => (
-          <li key={paper.data.id}>
-            {paper.data.label} ({paper.data.author})
-            <button onClick={() => handleAddConnection(paper)}>Add Connection</button>
-          </li>
-        ))}
-      </ul>
-      <h2>Selected Connections</h2>
-      <ul>
-        {connections.map((paper, index) => (
-          <li key={index}>
-            {paper.data.label} ({paper.data.author})
-          </li>
-        ))}
-      </ul>
-      <button onClick={handleSaveConnections}>Save Connections</button>
+      <div className="content">
+        <div className="left-side">
+          <div className="search-box">
+            <select value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)}>
+              <option value="">Select Subject</option>
+              {Object.keys(categorisedSubjects).map(category => (
+                <optgroup key={category} label={category}>
+                  {categorisedSubjects[category].map(subject => (
+                    <option key={subject.subject_id} value={subject.subject_id}>
+                      {subject.display_name}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search for papers"
+            />
+            <button onClick={handleSearch}>Search</button>
+          </div>
+          {originalPaper && (
+            <div className="original-paper">
+              <h2>Original Paper</h2>
+              <div>
+                <strong>Title:</strong> {originalPaper.data.label} <br />
+                <strong>Author:</strong> {originalPaper.data.author}
+              </div>
+            </div>
+          )}
+          <div className="existing-connections">
+            <h2>Existing Connections</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Source</th>
+                  <th>Target</th>
+                  <th>Type</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {existingConnections.length > 0 ? (
+                  existingConnections.map((conn, index) => (
+                    <tr key={index}>
+                      <td>{conn.source.title}</td>
+                      <td>{conn.target.title}</td>
+                      <td>{conn.type.name}</td>
+                      <td><button onClick={() => handleRemoveExistingConnection(conn.id)}>Remove</button></td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4">No existing connections</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div className="right-side">
+          <div className="results">
+            <h2>Search Results</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Author</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {results.length > 0 ? (
+                  results.map(paper => (
+                    <tr key={paper.data.id}>
+                      <td>{paper.data.label}</td>
+                      <td>{paper.data.author}</td>
+                      <td>
+                        {originalPaper ? (
+                          <>
+                            <select onChange={(e) => setSelectedConnectionType(e.target.value)} value={selectedConnectionType}>
+                              <option value="">Select Connection Type</option>
+                              {connectionTypes.map(type => (
+                                <option key={type.id} value={type.id}>
+                                  {type.name}
+                                </option>
+                              ))}
+                            </select>
+                            <button onClick={() => handleAddConnection(paper)}>Add Connection</button>
+                          </>
+                        ) : (
+                          <button onClick={() => handleSelectOriginalPaper(paper)}>Select as Original Paper</button>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="3">No results found</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          <div className="connections">
+            <h2>Selected Connections</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Original Paper</th>
+                  <th>Related Paper</th>
+                  <th>Author</th>
+                  <th>Connection Type</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {connections.map((paper, index) => (
+                  <tr key={index}>
+                    <td>{paper.originalPaper.data.label}</td>
+                    <td>{paper.relatedPaper.data.label}</td>
+                    <td>{paper.relatedPaper.data.author}</td>
+                    <td>{connectionTypes.find(type => type.id === paper.connectionType)?.name || "N/A"}</td>
+                    <td><button onClick={() => handleRemoveConnection(index)}>Remove</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <button onClick={handleSaveConnections}>Save Connections</button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

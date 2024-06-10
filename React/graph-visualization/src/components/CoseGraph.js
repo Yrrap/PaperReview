@@ -47,7 +47,7 @@ const CoseGraph = ({ elements }) => {
                 selector: 'node',
                 style: {
                   'background-color': ele => ele.data('highlighted') ? '#ff0' : '#666',
-                  // 'label': 'data(label)',
+                  'label': 'data(label)',
                   'text-valign': 'center',
                   'color': '#fff',
                   'width': '20px',

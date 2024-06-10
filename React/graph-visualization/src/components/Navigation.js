@@ -13,11 +13,16 @@ const Navigation = () => {
   }, []);
 
   const categorizedSubjects = subjects.reduce((acc, subject) => {
-    const category = subject.overarching_subject || 'Other'; 
+    const category = subject.overarching_subject || 'Other';
     if (!acc[category]) acc[category] = [];
     acc[category].push(subject);
     return acc;
   }, {});
+
+  // Sort subjects within each category alphabetically
+  Object.keys(categorizedSubjects).forEach(category => {
+    categorizedSubjects[category].sort((a, b) => a.display_name.localeCompare(b.display_name));
+  });
 
   return (
     <nav className="nav-bar">
