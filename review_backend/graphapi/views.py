@@ -10,23 +10,42 @@ logger = logging.getLogger(__name__)
 @csrf_exempt
 def add_connections(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        subject_id = data['subjectId']
-        connections = data['connections']
+        try:
+            data = json.loads(request.body)
+            logger.info(f"Received data: {data}")
+            subject_id = data['subjectId']
+            connections = data['connections']
+            logger.info(f"Subject ID: {subject_id}, Connections: {connections}")
 
-        for conn in connections:
-            paper_id = conn['data']['id']
-            related_paper_id = conn['data']['related_id']
-            relationship_type_id = conn['connectionType']
+            for conn in connections:
+                logger.info(f"Processing connection: {conn}")
+                try:
+                    paper_id = conn['originalPaper']['data']['id']
+                    related_paper_id = conn['relatedPaper']['data']['id']
+                    relationship_type_id = conn['connectionType']['id']
 
-            Link.objects.get_or_create(
-                paper_id_id=paper_id,
-                related_paper_id_id=related_paper_id,
-                defaults={'relationship_type_id': relationship_type_id}
-            )
-        return JsonResponse({'status': 'success'})
+                    Link.objects.get_or_create(
+                        paper_id_id=paper_id,
+                        related_paper_id_id=related_paper_id,
+                        defaults={'relationship_type_id': relationship_type_id}
+                    )
+                except KeyError as e:
+                    logger.error(f"Missing key in connection data: {e}")
+                    return JsonResponse({'error': f"Missing key: {e}"}, status=400)
+                except TypeError as e:
+                    logger.error(f"Type error in connection data: {e}")
+                    return JsonResponse({'error': f"Type error: {e}"}, status=400)
+
+            return JsonResponse({'status': 'success'})
+        except json.JSONDecodeError as e:
+            logger.error(f"Error decoding JSON: {e}")
+            return JsonResponse({'error': f"Error decoding JSON: {e}"}, status=400)
+        except Exception as e:
+            logger.error(f"Error saving connections: {e}")
+            return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
 
 @csrf_exempt
 def remove_connection(request, connection_id):
@@ -47,6 +66,7 @@ def connections_by_paper(request, paper_id):
     try:
         links = Link.objects.filter(Q(paper_id=paper_id) | Q(related_paper_id=paper_id)).select_related('relationship_type', 'paper_id', 'related_paper_id')
         data = [{
+            'id': link.link_id,  # Ensure this is included
             'source': {'id': link.paper_id.paper_id, 'title': link.paper_id.title},
             'target': {'id': link.related_paper_id.paper_id, 'title': link.related_paper_id.title},
             'type': {'id': link.relationship_type.id, 'name': link.relationship_type.name}
@@ -55,6 +75,7 @@ def connections_by_paper(request, paper_id):
     except Exception as e:
         logger.error(f"Error fetching connections for paper {paper_id}: {e}")
         return JsonResponse({'error': str(e)}, status=500)
+
 
 def connection_types(request):
     try:

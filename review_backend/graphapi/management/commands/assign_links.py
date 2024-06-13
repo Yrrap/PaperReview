@@ -2,7 +2,6 @@
 import spacy
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-from bertopic import BERTopic
 import itertools
 import logging
 import environ
@@ -20,9 +19,6 @@ stopwords = nlp.Defaults.stop_words
 
 # Load SentenceTransformer model
 model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
-
-# Load BERTopic model
-topic_model = BERTopic()
 
 # Set up environ
 env = environ.Env()
