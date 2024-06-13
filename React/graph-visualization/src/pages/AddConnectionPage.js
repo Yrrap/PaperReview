@@ -25,7 +25,7 @@ const AddConnectionPage = () => {
         fetch('http://127.0.0.1:8000/api/connection_types/')
             .then(response => response.json())
             .then(data => {
-                console.log('Fetched connection types:', data); // Add logging
+                // console.log('Fetched connection types:', data); // Add logging
                 setConnectionTypes(data);
             })
             .catch(error => console.error('Error fetching connection types:', error));
@@ -35,7 +35,7 @@ const AddConnectionPage = () => {
       fetch(`http://127.0.0.1:8000/api/connections/${paperId}`)
           .then(response => response.json())
           .then(data => {
-              console.log('Fetched existing connections:', data); // Log fetched data
+              // console.log('Fetched existing connections:', data); // Log fetched data
               if (Array.isArray(data)) {
                   setExistingConnections(data);
               } else {
@@ -77,8 +77,8 @@ const AddConnectionPage = () => {
     };
 
     const handleAddConnection = (paper) => {
-      console.log('Selected Connection Type:', selectedConnectionType);
-      console.log('Connection Types:', connectionTypes);
+      // console.log('Selected Connection Type:', selectedConnectionType);
+      // console.log('Connection Types:', connectionTypes);
   
       if (!selectedConnectionType) {
           console.error('Connection type is missing');
@@ -97,7 +97,7 @@ const AddConnectionPage = () => {
           connectionType: selectedTypeObject
       };
   
-      console.log('Adding connection:', connection);
+      // console.log('Adding connection:', connection);
       setConnections([...connections, connection]);
       setSelectedConnectionType('');
   };
@@ -109,7 +109,7 @@ const AddConnectionPage = () => {
 };
 
 const handleRemoveExistingConnection = (connectionId) => {
-  console.log('Removing connection with ID:', connectionId); // Log connection ID
+  // console.log('Removing connection with ID:', connectionId); // Log connection ID
   fetch(`http://127.0.0.1:8000/api/remove_connection/${connectionId}`, {
       method: 'DELETE',
   })
@@ -132,7 +132,7 @@ const handleRemoveExistingConnection = (connectionId) => {
             connectionType: { id: conn.connectionType.id, name: conn.connectionType.name }
         }));
 
-        console.log('Sending data:', { connections: formattedConnections, subjectId: selectedSubject });
+        // console.log('Sending data:', { connections: formattedConnections, subjectId: selectedSubject });
 
         fetch(`http://127.0.0.1:8000/api/add_connections/`, {
             method: 'POST',
@@ -141,7 +141,7 @@ const handleRemoveExistingConnection = (connectionId) => {
         })
         .then(response => response.json())
         .then(data => {
-            console.log('Connections saved:', data);
+            // console.log('Connections saved:', data);
             setConnections([]);
             fetchExistingConnections(originalPaper.data.id);
         })
