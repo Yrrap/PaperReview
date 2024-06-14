@@ -26,24 +26,23 @@ This project is a web-based platform designed to assist in the writing of academ
    git clone https://github.com/yourusername/academic-review-platform.git
    cd academic-review-platform
 2. **Back-end Setup**:
+ - Navigate to the the back-end folder
+   ```bash
+   cd review_backend
  - Create a virtual environment:
    ```bash
    python -m venv env
-   source env/bin/activate
+   .\env\Scripts\Activate
  - Install Python dependencies:
    ```bash
    pip install -r requirements.txt
- - Configure PostgreSQL and set up your database.
- - Apply Django migrations:
-   ```bash
-   python manage.py migrate
  - Start the Django development server:
    ```bash
    python manage.py runserver
 3. **Front-end Setup**:
- - Navigate to the frontend directory:
+ - Start a new terminal and navigate to the front-end directory:
    ```bash
-   cd React
+   cd React\graph-visualization\
  - Install npm dependencies:
    ```bash
    npm install
@@ -53,6 +52,14 @@ This project is a web-based platform designed to assist in the writing of academ
 
 ### Usage
 Once both the backend and frontend servers are running, you can access the platform by navigating to http://localhost:3000 in your web browser. Use the interface to explore academic paper connections, add or remove links, and search for specific papers.
+
+Despite all of the subjects having papers downloaded, the database currently only has connections for Computer Science Machine Learning (500 papers) and Computer Science Artificial Intelligence (5000 papers).
+
+To create more connections, navigate to the back-end directory and run the following command:
+   ```bash
+   python manage.py assign_links "cs.AI"
+   ```
+But check the arxiv_ids.py file for the appropriate subject ID.
 
 ### Acknowledgements
 This project was developed as part of an Integrated Master's thesis. I would like to thank my supervisor, Dr. D. Goodman, for his valuable feedback.
