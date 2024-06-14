@@ -33,7 +33,7 @@ DB_PASSWORD = env('DB_PASSWORD')
 
 # Function to fetch data from arXiv API based on subject
 def fetch_arxiv_papers(subject_id):
-    ARXIV_API_URL = f'http://export.arxiv.org/api/query?search_query=cat:{subject_id}&start=0&max_results=500'
+    ARXIV_API_URL = f'http://export.arxiv.org/api/query?search_query=cat:{subject_id}&start=0&max_results=5000'
     logger.info(f'Fetching papers from URL: {ARXIV_API_URL}')
     response = requests.get(ARXIV_API_URL)
     logger.info(f'Response Status Code: {response.status_code}')
@@ -186,9 +186,24 @@ def preprocess_abstracts(papers):
 class Command(BaseCommand):
     help = 'Populate the database with papers from arXiv'
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--subject',
+            type=str,
+            help='Specific subject to fetch papers for (e.g., cs.DB). If not provided, fetch papers for all subjects.'
+        )
+
     def handle(self, *args, **kwargs):
+        subject_argument = kwargs.get('subject')
         all_papers = []
+
         subjects = {subcat: name for cat in SUBJECT_IDS.values() for subcat, name in cat.items()}
+
+        if subject_argument:
+            subjects = {subject_argument: subjects.get(subject_argument)}
+            if subjects[subject_argument] is None:
+                logger.error(f'Invalid subject: {subject_argument}')
+                return
 
         for subject_id, display_name in subjects.items():
             logger.info(f'Fetching papers for subject: {subject_id}')
