@@ -53,18 +53,22 @@ def determine_relationship_type(doc1, doc2):
     result_keywords = ['result', 'finding', 'outcome', 'conclusion', 'evidence']
     field_keywords = ['field', 'area', 'domain', 'topic', 'discipline']
 
-    method_match = any(token.lemma_ in method_keywords and token.lemma_ in doc2.text for token in doc1)
-    result_match = any(token.lemma_ in result_keywords and token.lemma_ in doc2.text for token in doc1)
-    field_match = any(token.lemma_ in field_keywords and token.lemma_ in doc2.text for token in doc1)
+    relationships = []
 
+    method_match = any(token.lemma_ in method_keywords and token.lemma_ in doc2.text for token in doc1)
     if method_match:
-        return 'similar methods'
-    elif result_match:
-        return 'similar results'
-    elif field_match:
-        return 'related field'
-    else:
-        return None
+        relationships.append('similar methods')
+
+    result_match = any(token.lemma_ in result_keywords and token.lemma_ in doc2.text for token in doc1)
+    if result_match:
+        relationships.append('similar results')
+
+    field_match = any(token.lemma_ in field_keywords and token.lemma_ in doc2.text for token in doc1)
+    if field_match:
+        relationships.append('related field')
+
+    return relationships if relationships else None
+
 
 def ensure_connection_types(cursor):
     connection_types = ['related field', 'similar results', 'cites', 'similar methods']
@@ -90,9 +94,10 @@ def insert_links(papers, similarities, embeddings, cursor):
             if similarity > 0.65:  # Adjusted threshold for stronger links
                 topic1 = embeddings[i]
                 topic2 = embeddings[j]
-                relationship_type = determine_relationship_type(papers[i]['doc'], papers[j]['doc'])
-                if relationship_type is not None:
-                    links_data.append((papers[i]['paper_id'], papers[j]['paper_id'], connection_type_ids[relationship_type]))
+                relationship_types = determine_relationship_type(papers[i]['doc'], papers[j]['doc'])
+                if relationship_types is not None:
+                    for relationship_type in relationship_types:
+                        links_data.append((papers[i]['paper_id'], papers[j]['paper_id'], connection_type_ids[relationship_type]))
 
         if links_data:
             insert_query = '''

@@ -10,11 +10,12 @@ logger = logging.getLogger(__name__)
 @csrf_exempt
 def add_connections(request):
     if request.method == 'POST':
+        errors = []
         try:
             data = json.loads(request.body)
             logger.info(f"Received data: {data}")
-            subject_id = data['subjectId']
-            connections = data['connections']
+            subject_id = data.get('subjectId')
+            connections = data.get('connections', [])
             logger.info(f"Subject ID: {subject_id}, Connections: {connections}")
 
             for conn in connections:
@@ -24,28 +25,41 @@ def add_connections(request):
                     related_paper_id = conn['relatedPaper']['data']['id']
                     relationship_type_id = conn['connectionType']['id']
 
-                    Link.objects.get_or_create(
+                    # Check if the connection already exists
+                    if not Link.objects.filter(
                         paper_id_id=paper_id,
                         related_paper_id_id=related_paper_id,
-                        defaults={'relationship_type_id': relationship_type_id}
-                    )
+                        relationship_type_id=relationship_type_id
+                    ).exists():
+                        Link.objects.create(
+                            paper_id_id=paper_id,
+                            related_paper_id_id=related_paper_id,
+                            relationship_type_id=relationship_type_id  
+                        )
                 except KeyError as e:
-                    logger.error(f"Missing key in connection data: {e}")
-                    return JsonResponse({'error': f"Missing key: {e}"}, status=400)
+                    error_message = f"Missing key in connection data: {e}"
+                    logger.error(error_message)
+                    errors.append(error_message)
                 except TypeError as e:
-                    logger.error(f"Type error in connection data: {e}")
-                    return JsonResponse({'error': f"Type error: {e}"}, status=400)
+                    error_message = f"Type error in connection data: {e}"
+                    logger.error(error_message)
+                    errors.append(error_message)
+                except Exception as e:
+                    error_message = f"Error saving connection: {e}"
+                    logger.error(error_message)
+                    errors.append(error_message)
 
+            if errors:
+                return JsonResponse({'status': 'partial_success', 'errors': errors}, status=207)
             return JsonResponse({'status': 'success'})
         except json.JSONDecodeError as e:
             logger.error(f"Error decoding JSON: {e}")
             return JsonResponse({'error': f"Error decoding JSON: {e}"}, status=400)
         except Exception as e:
-            logger.error(f"Error saving connections: {e}")
+            logger.error(f"Error processing request: {e}")
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
-
 
 @csrf_exempt
 def remove_connection(request, connection_id):

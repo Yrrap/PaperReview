@@ -55,6 +55,7 @@ class Link(models.Model):
 
     class Meta:
         db_table = 'links'
+        unique_together = ('paper_id', 'related_paper_id', 'relationship_type')
 
     def __str__(self):
         return f"{self.paper_id.title} -> {self.related_paper_id.title} ({self.relationship_type})"
